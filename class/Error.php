@@ -234,6 +234,7 @@ class Ethna_Error
         for ($i = 0; $i < count($tmp_userinfo); $i++) {
             $tmp_message_arg_list[] = $this->i18n ? $this->i18n->get($tmp_userinfo[$i]) : $tmp_userinfo[$i];
         }
+
         return vsprintf($tmp_message, $tmp_message_arg_list);
     }
 

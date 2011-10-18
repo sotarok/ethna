@@ -181,7 +181,10 @@ class Ethna_Plugin_Logwriter_Debugtoolbar extends Ethna_Plugin_Logwriter
             return null;
         }
         else {
-            $file = $bt[$i]['file'];
+            $file = "-";
+            if (isset($bt[$i]['file'])) {
+                $file = $bt[$i]['file'];
+            }
         }
         $orig_file = $file;
         if (strncmp($file, $basedir, strlen($basedir)) == 0) {
