@@ -45,6 +45,16 @@ ini_set('include_path', realpath(dirname(ETHNA_INSTALL_BASE)) . PATH_SEPARATOR .
 /** Ethna関連クラスのインクルード */
 require_once 'Ethna/Ethna.php';
 
+$class_loader = new Ethna_ClassLoader();
+$class_loader->registerNamespace('Ethna', new Ethna_ClassLoader_Core(ETHNA_BASE));
+$class_loader->register();
+//if ($this->getAppId() != 'Ethna') {
+//    $this->class_loader->registerNamespace(
+//        $this->getAppId(),
+//        new Ethna_ClassLoader_App($this->getBasedir(), $this)
+//    );
+//}
+
 // simpletest を使っているため、E_DEPRECATED, E_STRICT は解除
 error_reporting(error_reporting() & ~E_DEPRECATED & ~E_STRICT);
 if (extension_loaded('xdebug')) {

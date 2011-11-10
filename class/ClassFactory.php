@@ -82,17 +82,17 @@ class Ethna_ClassFactory
         //  これは、AppObject のファイル中にAppManagerが含まれる場合が
         //  あるため必要なルーチンである
         $obj_class_name = $this->controller->getObjectClassName($type);
-        if (class_exists($obj_class_name) === false) {
-            $this->_include($obj_class_name);
-        }
+        //if (class_exists($obj_class_name) === false) {
+        //    $this->_include($obj_class_name);
+        //}
 
         //  すでにincludeされていなければ、includeを試みる
         //  ここで返されるクラス名は、AppManagerの命名規約によるもの
-        $class_name = $this->controller->getManagerClassName($type);
-        if (class_exists($class_name) === false
-            && $this->_include($class_name) === false) {
-            return $obj;  //  include 失敗。戻り値はNULL。
-        }
+        //$class_name = $this->controller->getManagerClassName($type);
+        //if (class_exists($class_name) === false
+        //    && $this->_include($class_name) === false) {
+        //    return $obj;  //  include 失敗。戻り値はNULL。
+        //}
 
         //  メソッド情報を集める
         if (isset($this->method_list[$class_name]) == false) {
@@ -165,11 +165,11 @@ class Ethna_ClassFactory
         }
 
         //  すでにincludeされていなければ、includeを試みる
-        if (class_exists($class_name) == false) {
-            if ($this->_include($class_name) == false) {
-                return $object;  //  include 失敗。返り値はnull
-            }
-        }
+        //if (class_exists($class_name) == false) {
+        //    if ($this->_include($class_name) == false) {
+        //        return $object;  //  include 失敗。返り値はnull
+        //    }
+        //}
 
         //  AppObject をはじめに扱う
         //  AppObject はキャッシュされないことに注意

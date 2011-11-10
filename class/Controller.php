@@ -78,6 +78,7 @@ class Ethna_Controller
     /** @protected    array       クラス設定(デフォルト) */
     public $class_default = array(
         'class'         => 'Ethna_ClassFactory',
+        'class_loader'  => 'Ethna_ClassLoader',
         'backend'       => 'Ethna_Backend',
         'config'        => 'Ethna_Config',
         'db'            => 'Ethna_DB',
@@ -124,6 +125,9 @@ class Ethna_Controller
         'json' => array( 'view_name' => 'Ethna_View_Json',),
         'redirect' => array( 'view_name' => 'Ethna_View_Redirect',),
     );
+
+    /** @protected    object  Ethna_ClassLoader */
+    protected $class_loader = null;
 
     /** @protected    array   action定義 */
     protected $action = array();
@@ -191,20 +195,6 @@ class Ethna_Controller
             }
         }
 
-        // ディレクトリ設定の未定義値を補完
-        foreach ($this->directory_default as $key => $val) {
-            if (isset($this->directory[$key]) == false) {
-                $this->directory[$key] = $val;
-            }
-        }
-
-        // クラスファクトリオブジェクトの生成
-        $class_factory = $this->class['class'];
-        $this->class_factory = new $class_factory($this, $this->class);
-
-        // エラーハンドラの設定
-        Ethna::setErrorCallback(array($this, 'handleError'));
-
         // ディレクトリ名の設定(相対パス->絶対パス)
         foreach ($this->directory as $key => $value) {
             if ($key == 'plugins') {
@@ -222,6 +212,26 @@ class Ethna_Controller
                 }
             }
         }
+
+        // register class loader
+        $class_loader = new $this->class['class_loader']();
+        $class_loader->register();
+        $this->setClassLoader($class_loader);
+        $this->bootstrap();
+
+        // ディレクトリ設定の未定義値を補完
+        foreach ($this->directory_default as $key => $val) {
+            if (isset($this->directory[$key]) == false) {
+                $this->directory[$key] = $val;
+            }
+        }
+
+        // クラスファクトリオブジェクトの生成
+        $class_factory = $this->class['class'];
+        $this->class_factory = new $class_factory($this, $this->class);
+
+        // エラーハンドラの設定
+        Ethna::setErrorCallback(array($this, 'handleError'));
 
         // 遷移先設定をマージ
         // 但し、キーは完全に維持する
@@ -249,7 +259,6 @@ class Ethna_Controller
         $this->plugin = $this->getPlugin();
 
         // include Ethna_Plugin_Abstract for all plugins
-        $this->plugin->includePlugin('Abstract');
 
         //// assert (experimental)
         //if ($this->config->get('debug') === false) {
@@ -290,6 +299,20 @@ class Ethna_Controller
         } else {
             $_ret_object = null;
             return $_ret_object;
+        }
+    }
+
+    /**
+     *  bootstrap
+     */
+    public function bootstrap()
+    {
+        $this->class_loader->registerNamespace('Ethna', new Ethna_ClassLoader_Core(ETHNA_BASE));
+        if ($this->getAppId() != 'Ethna') {
+            $this->class_loader->registerNamespace(
+                $this->getAppId(),
+                new Ethna_ClassLoader_App($this->getBasedir(), $this)
+            );
         }
     }
 
@@ -603,6 +626,32 @@ class Ethna_Controller
         }
         $this->action_form = $af;
         return true;
+    }
+
+    /**
+     *  Setter for ClassLoader
+     *
+     *  @param  object   Ethna_ClassLoader
+     *  @return boolean
+     */
+    public function setClassLoader($cl)
+    {
+        if ($this->class_loader !== null
+            || !($cl instanceof Ethna_ClassLoader)) {
+            return false;
+        }
+        $this->class_loader = $cl;
+        return true;
+    }
+
+    /**
+     *  Getter for ClassLoader
+     *
+     *  @return object  Ethna_ClassLoader
+     */
+    public function getClassLoader()
+    {
+        return $this->class_loader;
     }
 
 
@@ -1385,7 +1434,7 @@ class Ethna_Controller
         }
 
         // アクションスクリプトのインクルード
-        $this->_includeActionScript($action_obj, $action_name);
+        //$this->_includeActionScript($action_obj, $action_name);
 
         // 省略値の補正
         if (isset($action_obj['class_name']) == false) {
@@ -1979,6 +2028,7 @@ class Ethna_Controller
         }
 
         // デフォルトチェック
+        /*
         if (is_null($class_path)) {
             $class_path = $this->getDefaultActionPath($action_name);
             if (file_exists($action_dir . $class_path)) {
@@ -1988,8 +2038,10 @@ class Ethna_Controller
                 return;
             }
         }
+         */
 
         // form_path属性チェック
+        /*
         if (isset($action_obj['form_path'])) {
             // フルパス指定サポート
             $tmp_path = $action_obj['form_path'];
@@ -2020,6 +2072,7 @@ class Ethna_Controller
                 $this->logger->log(LOG_DEBUG, 'default form file not found [%s] -> maybe falling back to default form class', $form_path);
             }
         }
+         */
     }
 
     /**
@@ -2051,15 +2104,10 @@ class Ethna_Controller
             }
         }
 
-        // デフォルトチェック
-        $view_path = $this->getDefaultViewPath($forward_name);
-        if (file_exists($view_dir . $view_path)) {
-            include_once $view_dir . $view_path;
-            return;
-        } else {
-            $this->logger->log(LOG_DEBUG, 'default view file not found [%s]', $view_path);
-            $view_path = null;
-        }
+        /*
+         *  The logic of checking default view path and including script was
+         *  moved to the Ethna_ClassLoader_App.
+         */
     }
 
     /**
